@@ -3,7 +3,7 @@ import React, { useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowUp, ArrowDown } from "lucide-react";
-import SyntaxHighlighter from "react-syntax-highlighter";
+import { SyntaxHighlighter } from "react-syntax-highlighter";
 import { atomOneDark, atomOneLight } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { useTheme } from "next-themes";
 
