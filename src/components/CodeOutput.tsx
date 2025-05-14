@@ -1,37 +1,39 @@
 
 import React, { useRef } from 'react';
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { ArrowUp, ArrowDown } from "lucide-react";
-import SyntaxHighlighter from 'react-syntax-highlighter';
-import { atomOneDark, atomOneLight } from 'react-syntax-highlighter/dist/esm/styles/hljs';
-import { useTheme } from "next-themes";
 
 interface CodeOutputProps {
   value: string;
 }
 
 const CodeOutput = ({ value }: CodeOutputProps) => {
-  const outputRef = useRef<HTMLDivElement>(null);
-  const { theme } = useTheme();
-  const isDarkTheme = theme === "dark";
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleCopy = () => {
-    if (value) {
+    if (textareaRef.current) {
+      textareaRef.current.select();
       navigator.clipboard.writeText(value);
       toast.success("Copied to clipboard!");
     }
   };
 
   const scrollToTop = () => {
-    if (outputRef.current) {
-      outputRef.current.scrollTop = 0;
+    if (textareaRef.current) {
+      textareaRef.current.scrollTop = 0;
+      textareaRef.current.focus();
+      textareaRef.current.setSelectionRange(0, 0);
     }
   };
 
   const scrollToBottom = () => {
-    if (outputRef.current) {
-      outputRef.current.scrollTop = outputRef.current.scrollHeight;
+    if (textareaRef.current) {
+      textareaRef.current.scrollTop = textareaRef.current.scrollHeight;
+      textareaRef.current.focus();
+      const length = textareaRef.current.value.length;
+      textareaRef.current.setSelectionRange(length, length);
     }
   };
 
@@ -68,23 +70,13 @@ const CodeOutput = ({ value }: CodeOutputProps) => {
           </Button>
         </div>
       </div>
-      <div 
-        ref={outputRef}
-        className="relative flex-grow min-h-[450px] border rounded-md overflow-auto"
-      >
-        <SyntaxHighlighter
-          language="javascript"
-          style={isDarkTheme ? atomOneDark : atomOneLight}
-          customStyle={{
-            margin: 0,
-            padding: '1rem',
-            height: '100%',
-            background: isDarkTheme ? 'rgb(17 24 39 / 0.8)' : 'rgb(219 234 254 / 0.5)'
-          }}
-        >
-          {value || ' '}
-        </SyntaxHighlighter>
-      </div>
+      <Textarea
+        ref={textareaRef}
+        value={value}
+        readOnly
+        className="flex-grow font-mono text-sm h-full min-h-[450px] resize-none bg-blue-50/50 dark:bg-blue-950/20 p-4 text-blue-800 dark:text-blue-200"
+        spellCheck={false}
+      />
     </div>
   );
 };

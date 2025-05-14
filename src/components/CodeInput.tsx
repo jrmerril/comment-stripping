@@ -1,10 +1,8 @@
 
 import React, { useRef } from 'react';
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { ArrowUp, ArrowDown } from "lucide-react";
-import { useTheme } from "next-themes";
-import SyntaxHighlighter from 'react-syntax-highlighter';
-import { atomOneDark, atomOneLight } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 
 interface CodeInputProps {
   value: string;
@@ -14,8 +12,6 @@ interface CodeInputProps {
 
 const CodeInput = ({ value, onChange, onClear }: CodeInputProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const { theme } = useTheme();
-  const isDarkTheme = theme === "dark";
 
   const scrollToTop = () => {
     if (textareaRef.current) {
@@ -64,30 +60,14 @@ const CodeInput = ({ value, onChange, onClear }: CodeInputProps) => {
           </Button>
         </div>
       </div>
-      <div className="relative flex-grow min-h-[450px] border rounded-md overflow-auto">
-        <SyntaxHighlighter
-          language="javascript"
-          style={isDarkTheme ? atomOneDark : atomOneLight}
-          customStyle={{
-            margin: 0,
-            padding: '1rem',
-            height: '100%',
-            background: 'transparent'
-          }}
-          wrapLongLines={true}
-        >
-          {value || ' '}
-        </SyntaxHighlighter>
-        <textarea
-          ref={textareaRef}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder="Paste your code here..."
-          className="absolute top-0 left-0 w-full h-full opacity-0 resize-none p-4 font-mono text-sm"
-          spellCheck={false}
-          style={{ caretColor: isDarkTheme ? 'white' : 'black' }}
-        />
-      </div>
+      <Textarea
+        ref={textareaRef}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="Paste your code here..."
+        className="flex-grow font-mono text-sm h-full min-h-[450px] resize-none p-4 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200"
+        spellCheck={false}
+      />
     </div>
   );
 };
