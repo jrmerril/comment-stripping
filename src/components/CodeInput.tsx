@@ -1,8 +1,10 @@
 
 import React, { useRef } from 'react';
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { ArrowUp, ArrowDown } from "lucide-react";
+import SyntaxHighlighter from "react-syntax-highlighter";
+import { atomOneDark, atomOneLight } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import { useTheme } from "next-themes";
 
 interface CodeInputProps {
   value: string;
@@ -11,22 +13,24 @@ interface CodeInputProps {
 }
 
 const CodeInput = ({ value, onChange, onClear }: CodeInputProps) => {
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const { theme } = useTheme();
+  const isDarkTheme = theme === "dark";
 
   const scrollToTop = () => {
-    if (textareaRef.current) {
-      textareaRef.current.scrollTop = 0;
-      textareaRef.current.focus();
-      textareaRef.current.setSelectionRange(0, 0);
+    if (inputRef.current) {
+      inputRef.current.scrollTop = 0;
+      inputRef.current.focus();
+      inputRef.current.setSelectionRange(0, 0);
     }
   };
 
   const scrollToBottom = () => {
-    if (textareaRef.current) {
-      textareaRef.current.scrollTop = textareaRef.current.scrollHeight;
-      textareaRef.current.focus();
-      const length = textareaRef.current.value.length;
-      textareaRef.current.setSelectionRange(length, length);
+    if (inputRef.current) {
+      inputRef.current.scrollTop = inputRef.current.scrollHeight;
+      inputRef.current.focus();
+      const length = inputRef.current.value.length;
+      inputRef.current.setSelectionRange(length, length);
     }
   };
 
@@ -60,14 +64,30 @@ const CodeInput = ({ value, onChange, onClear }: CodeInputProps) => {
           </Button>
         </div>
       </div>
-      <Textarea
-        ref={textareaRef}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder="Paste your code here..."
-        className="flex-grow font-mono text-sm h-full min-h-[450px] resize-none p-4 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200"
-        spellCheck={false}
-      />
+      <div className="relative flex-grow min-h-[450px] border rounded-md">
+        <textarea
+          ref={inputRef}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="Paste your code here..."
+          className="absolute inset-0 w-full h-full font-mono text-sm resize-none p-4 opacity-0 z-10"
+          spellCheck={false}
+        />
+        <div className="absolute inset-0 overflow-auto">
+          <SyntaxHighlighter
+            language="javascript"
+            style={isDarkTheme ? atomOneDark : atomOneLight}
+            customStyle={{
+              margin: 0,
+              padding: '1rem',
+              height: '100%',
+              background: 'transparent',
+            }}
+          >
+            {value || ' '}
+          </SyntaxHighlighter>
+        </div>
+      </div>
     </div>
   );
 };
