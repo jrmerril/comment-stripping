@@ -6,6 +6,7 @@ import CodeOutput from "@/components/CodeOutput";
 import { removeCommentLines } from "@/utils/codeUtils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const Index = () => {
   const [inputCode, setInputCode] = useState<string>("");
@@ -22,12 +23,15 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 p-4 md:p-8">
+    <div className="min-h-screen flex flex-col bg-background p-4 md:p-8">
       <header className="max-w-5xl mx-auto w-full mb-6">
-        <h1 className="text-2xl md:text-3xl font-bold text-center">
-          Code Comment Remover
-        </h1>
-        <p className="text-muted-foreground text-center mt-2">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl md:text-3xl font-bold">
+            Code Comment Remover
+          </h1>
+          <ThemeToggle />
+        </div>
+        <p className="text-muted-foreground mt-2">
           Paste your code below to automatically remove all lines that start with "//"
         </p>
       </header>
