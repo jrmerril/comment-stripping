@@ -1,3 +1,5 @@
+This is available at https://preview--comment-stripping.lovable.app/
+
 # Welcome to your Lovable project
 
 ## Project info

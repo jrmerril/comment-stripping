@@ -8,9 +8,10 @@ interface CodeInputProps {
   value: string;
   onChange: (value: string) => void;
   onClear: () => void;
+  title?: string;
 }
 
-const CodeInput = ({ value, onChange, onClear }: CodeInputProps) => {
+const CodeInput = ({ value, onChange, onClear, title }: CodeInputProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const scrollToTop = () => {
@@ -33,7 +34,14 @@ const CodeInput = ({ value, onChange, onClear }: CodeInputProps) => {
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between mb-2">
-        <h2 className="text-lg font-medium">Input Code</h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-lg font-medium">{title || 'Input Code'}</h2>
+          {value && (
+            <span className="text-sm text-muted-foreground">
+              ({value.split('\n').length} {value.split('\n').length === 1 ? 'line' : 'lines'})
+            </span>
+          )}
+        </div>
         <div className="flex items-center gap-2">
           <Button 
             variant="outline" 

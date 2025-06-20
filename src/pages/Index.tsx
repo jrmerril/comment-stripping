@@ -38,7 +38,7 @@ const Index = () => {
       </header>
 
       <div className="flex-1 max-w-5xl mx-auto w-full">
-        <Accordion type="single" collapsible defaultValue="languages">
+        <Accordion type="single" collapsible>
           <AccordionItem value="languages">
             <AccordionTrigger className="px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-t-md">
               Language Settings
@@ -52,7 +52,7 @@ const Index = () => {
           </AccordionItem>
         </Accordion>
 
-        <div className="flex items-center space-x-2 mb-4 justify-end">
+        <div className="flex items-center space-x-2 mb-4 justify-end mt-4">
           <Checkbox 
             id="removeSpaces" 
             checked={removeSpaces}
@@ -70,10 +70,14 @@ const Index = () => {
                   value={inputCode} 
                   onChange={setInputCode} 
                   onClear={handleClear}
+                  title={`Input Code`}
                 />
               </div>
               <div className="h-full">
-                <CodeOutput value={outputCode} />
+                <CodeOutput 
+                  value={outputCode} 
+                  title={`Output`}
+                />
               </div>
             </div>
           </CardContent>
