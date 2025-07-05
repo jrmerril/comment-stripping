@@ -13,14 +13,16 @@ const Index = () => {
   const [inputCode, setInputCode] = useState<string>("");
   const [outputCode, setOutputCode] = useState<string>("");
   const [removeSpaces, setRemoveSpaces] = useState<boolean>(true);
+  const [removePlusMinus, setRemovePlusMinus] = useState<boolean>(true);
+  const [removeInlineComments, setRemoveInlineComments] = useState<boolean>(true);
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>(
     supportedLanguages.map(lang => lang.id) // All languages selected by default
   );
 
   // Update output whenever input, languages, or removeSpaces setting changes
   useEffect(() => {
-    setOutputCode(removeCommentLines(inputCode, selectedLanguages, removeSpaces));
-  }, [inputCode, selectedLanguages, removeSpaces]);
+    setOutputCode(removeCommentLines(inputCode, selectedLanguages, removeSpaces, removePlusMinus, removeInlineComments));
+  }, [inputCode, selectedLanguages, removeSpaces, removePlusMinus, removeInlineComments]);
 
   const handleClear = () => {
     setInputCode("");
@@ -53,14 +55,36 @@ const Index = () => {
         </Accordion>
 
         <div className="flex items-center space-x-2 mb-4 justify-end mt-4">
-          <Checkbox 
-            id="removeSpaces" 
-            checked={removeSpaces}
-            onCheckedChange={(checked) => setRemoveSpaces(checked as boolean)} 
-          />
-          <Label htmlFor="removeSpaces" className="text-sm font-medium cursor-pointer">
-            Remove extra spaces
-          </Label>
+          <div className="flex items-center space-x-2">
+            <Checkbox 
+              id="removeSpaces" 
+              checked={removeSpaces}
+              onCheckedChange={(checked) => setRemoveSpaces(checked as boolean)} 
+            />
+            <Label htmlFor="removeSpaces" className="text-sm font-medium cursor-pointer">
+              Remove extra spaces
+            </Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox 
+              id="removeInlineComments" 
+              checked={removeInlineComments}
+              onCheckedChange={(checked) => setRemoveInlineComments(checked as boolean)} 
+            />
+            <Label htmlFor="removeInlineComments" className="text-sm font-medium cursor-pointer">
+              Remove inline comments
+            </Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox 
+              id="removePlusMinus" 
+              checked={removePlusMinus}
+              onCheckedChange={(checked) => setRemovePlusMinus(checked as boolean)} 
+            />
+            <Label htmlFor="removePlusMinus" className="text-sm font-medium cursor-pointer">
+              Remove +/-
+            </Label>
+          </div>
         </div>
         <Card className="shadow-sm">
           <CardContent className="p-4 md:p-6">

@@ -80,7 +80,9 @@ export const supportedLanguages: LanguageConfig[] = [
 export const removeCommentLines = (
   code: string,
   selectedLanguages: string[] = supportedLanguages.map(lang => lang.id),
-  removeSpaces: boolean = true
+  removeSpaces: boolean = true,
+  removePlusMinus: boolean = false,
+  removeInlineComments: boolean = true
 ): string => {
   if (!code) return '';
   
@@ -91,6 +93,23 @@ export const removeCommentLines = (
   
   // First, handle multi-line comments
   let result = code;
+  
+  // Remove +/- symbols if requested
+  if (removePlusMinus) {
+    result = result.replace(/^\s*[+-]\s*/gm, '');
+  }
+
+  // Remove inline comments if requested
+  if (removeInlineComments) {
+    const singleLineCommentRegex = activeLanguages
+      .flatMap(lang => lang.singleLineComments)
+      .map(comment => `\s*${escapeRegExp(comment)}.*$`)
+      .join('|');
+    
+    if (singleLineCommentRegex) {
+      result = result.replace(new RegExp(`(${singleLineCommentRegex})`, 'gm'), '');
+    }
+  }
   
   // Process each language's multi-line comment style
   for (const lang of activeLanguages) {

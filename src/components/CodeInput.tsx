@@ -73,7 +73,7 @@ const CodeInput = ({ value, onChange, onClear, title }: CodeInputProps) => {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Paste your code here..."
-        className="flex-grow font-mono text-sm h-full min-h-[450px] resize-none p-4 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200"
+        className="flex-grow font-mono text-sm h-full min-h-[250px] resize-y p-4 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200"
         spellCheck={false}
       />
     </div>
