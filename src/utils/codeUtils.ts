@@ -163,6 +163,97 @@ export const removeCommentLines = (
 };
 
 /**
+ * Filters code to only include lines/blocks containing a specific phrase
+ * Preserves complete functions and declarations
+ * @param code The source code
+ * @param filterPhrase The phrase to filter by (case insensitive)
+ * @returns Filtered code with complete code blocks preserved
+ */
+export const filterCodeByPhrase = (code: string, filterPhrase: string): string => {
+  if (!code || !filterPhrase.trim()) return code;
+  
+  const lines = code.split('\n');
+  const filteredLines: string[] = [];
+  const phrase = filterPhrase.toLowerCase();
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const lowerLine = line.toLowerCase();
+    
+    if (lowerLine.includes(phrase)) {
+      // Check if this line is part of a function/class/block definition
+      const blockLines = extractCompleteBlock(lines, i);
+      filteredLines.push(...blockLines);
+      i += blockLines.length - 1; // Skip the lines we just added
+    }
+  }
+  
+  return filteredLines.join('\n');
+};
+
+/**
+ * Extracts a complete code block (function, class, etc.) starting from a given line
+ * @param lines Array of code lines
+ * @param startIndex Index of the line that contains the phrase
+ * @returns Array of lines representing the complete block
+ */
+function extractCompleteBlock(lines: string[], startIndex: number): string[] {
+  const startLine = lines[startIndex];
+  const trimmedStart = startLine.trim();
+  
+  // Check if this looks like a function/class/variable declaration
+  const isDeclaration = /^(function|def|class|const|let|var|public|private|protected|static|async|export|interface|type|enum)\s+/.test(trimmedStart) ||
+                       /\s*(=\s*function|\s*:\s*function|\s*=\s*\(|\s*=\s*async|\s*=\s*\{|\s*=\s*\[)/.test(startLine) ||
+                       /\{[^}]*$/.test(startLine); // Line ends with opening brace
+  
+  if (!isDeclaration) {
+    // If it's not a declaration, just return this line
+    return [startLine];
+  }
+  
+  // Find the complete block by matching braces/indentation
+  const result: string[] = [startLine];
+  const baseIndentation = getIndentation(startLine);
+  let braceCount = countBraces(startLine);
+  let i = startIndex + 1;
+  
+  while (i < lines.length) {
+    const currentLine = lines[i];
+    result.push(currentLine);
+    braceCount += countBraces(currentLine);
+    
+    // If braces are balanced and we're back to base indentation (or less), we're done
+    if (braceCount <= 0 && getIndentation(currentLine) <= baseIndentation && currentLine.trim() !== '') {
+      break;
+    }
+    
+    // Safety check: don't go beyond reasonable block size
+    if (result.length > 100) break;
+    
+    i++;
+  }
+  
+  return result;
+}
+
+/**
+ * Gets the indentation level of a line
+ */
+function getIndentation(line: string): number {
+  const match = line.match(/^(\s*)/);
+  return match ? match[1].length : 0;
+}
+
+/**
+ * Counts opening braces minus closing braces in a line
+ */
+function countBraces(line: string): number {
+  const openBraces = (line.match(/[{([]/g) || []).length;
+  const closeBraces = (line.match(/[})]/g) || []).length;
+  return openBraces - closeBraces;
+}
+
+/**
  * Helper function to escape special characters in regex patterns
  */
 function escapeRegExp(string: string): string {
