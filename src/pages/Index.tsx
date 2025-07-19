@@ -4,11 +4,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import CodeInput from "@/components/CodeInput";
 import CodeOutput from "@/components/CodeOutput";
 import LanguageSelector from "@/components/LanguageSelector";
-import { removeCommentLines, supportedLanguages, filterCodeByPhrase } from "@/utils/codeUtils";
+import { removeCommentLines, supportedLanguages } from "@/utils/codeUtils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const Index = () => {
@@ -20,29 +18,14 @@ const Index = () => {
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>(
     supportedLanguages.map(lang => lang.id) // All languages selected by default
   );
-  const [filterPhrase, setFilterPhrase] = useState<string>("");
-  const [isFiltered, setIsFiltered] = useState<boolean>(false);
 
-  // Update output whenever input, languages, or settings change
+  // Update output whenever input, languages, or removeSpaces setting changes
   useEffect(() => {
-    let processedCode = removeCommentLines(inputCode, selectedLanguages, removeSpaces, removePlusMinus, removeInlineComments);
-    if (isFiltered && filterPhrase.trim()) {
-      processedCode = filterCodeByPhrase(processedCode, filterPhrase);
-    }
-    setOutputCode(processedCode);
-  }, [inputCode, selectedLanguages, removeSpaces, removePlusMinus, removeInlineComments, isFiltered, filterPhrase]);
+    setOutputCode(removeCommentLines(inputCode, selectedLanguages, removeSpaces, removePlusMinus, removeInlineComments));
+  }, [inputCode, selectedLanguages, removeSpaces, removePlusMinus, removeInlineComments]);
 
   const handleClear = () => {
     setInputCode("");
-  };
-
-  const handleFilter = () => {
-    setIsFiltered(true);
-  };
-
-  const handleClearFilter = () => {
-    setFilterPhrase("");
-    setIsFiltered(false);
   };
 
   return (
@@ -115,40 +98,9 @@ const Index = () => {
                 />
               </div>
               <div className="h-full">
-                <div className="mb-4 p-3 bg-muted/50 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Input
-                      placeholder="Enter phrase to filter by (e.g., fetchcategorylistings)"
-                      value={filterPhrase}
-                      onChange={(e) => setFilterPhrase(e.target.value)}
-                      className="flex-1"
-                    />
-                    <Button 
-                      onClick={handleFilter}
-                      disabled={!filterPhrase.trim()}
-                      size="sm"
-                    >
-                      Filter
-                    </Button>
-                    {isFiltered && (
-                      <Button 
-                        onClick={handleClearFilter}
-                        variant="outline"
-                        size="sm"
-                      >
-                        Clear Filter
-                      </Button>
-                    )}
-                  </div>
-                  {isFiltered && filterPhrase && (
-                    <p className="text-sm text-muted-foreground">
-                      Showing code blocks containing: "{filterPhrase}"
-                    </p>
-                  )}
-                </div>
                 <CodeOutput 
                   value={outputCode} 
-                  title={`Output${isFiltered ? ' (Filtered)' : ''}`}
+                  title={`Output`}
                 />
               </div>
             </div>
