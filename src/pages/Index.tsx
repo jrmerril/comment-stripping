@@ -7,9 +7,9 @@ import LanguageSelector from "@/components/LanguageSelector";
 import { removeCommentLines, supportedLanguages, filterCodeByPhrase } from "@/utils/codeUtils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const Index = () => {
   const [inputCode, setInputCode] = useState<string>("");
@@ -25,13 +25,14 @@ const Index = () => {
 
   // Update output whenever input, languages, or removeSpaces setting changes
   useEffect(() => {
-    let processedCode = removeCommentLines(inputCode, selectedLanguages, removeSpaces, removePlusMinus, removeInlineComments);
+    let result = removeCommentLines(inputCode, selectedLanguages, removeSpaces, removePlusMinus, removeInlineComments);
     
+    // Apply filtering if enabled and phrase exists
     if (isFiltered && filterPhrase) {
-      processedCode = filterCodeByPhrase(processedCode, filterPhrase);
+      result = filterCodeByPhrase(result, filterPhrase);
     }
     
-    setOutputCode(processedCode);
+    setOutputCode(result);
   }, [inputCode, selectedLanguages, removeSpaces, removePlusMinus, removeInlineComments, isFiltered, filterPhrase]);
 
   const handleClear = () => {
@@ -39,12 +40,14 @@ const Index = () => {
   };
 
   const handleFilter = () => {
-    setIsFiltered(true);
+    if (filterPhrase.trim()) {
+      setIsFiltered(true);
+    }
   };
 
   const handleClearFilter = () => {
-    setIsFiltered(false);
     setFilterPhrase("");
+    setIsFiltered(false);
   };
 
   return (
@@ -118,32 +121,18 @@ const Index = () => {
               </div>
               <div className="h-full">
                 <div className="mb-4">
-                  <div className="flex gap-2 items-end">
-                    <div className="flex-1">
-                      <Label htmlFor="filterPhrase" className="text-sm font-medium">
-                        Filter functions containing phrase
-                      </Label>
-                      <Input
-                        id="filterPhrase"
-                        type="text"
-                        placeholder="e.g., fetchcategorylistings"
-                        value={filterPhrase}
-                        onChange={(e) => setFilterPhrase(e.target.value)}
-                        className="mt-1"
-                      />
-                    </div>
-                    <Button 
-                      onClick={handleFilter}
-                      disabled={!filterPhrase}
-                      variant="default"
-                    >
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Input
+                      placeholder="Enter phrase to filter (e.g., fetchcategorylistings)"
+                      value={filterPhrase}
+                      onChange={(e) => setFilterPhrase(e.target.value)}
+                      className="flex-1"
+                    />
+                    <Button onClick={handleFilter} disabled={!filterPhrase.trim()}>
                       Filter
                     </Button>
                     {isFiltered && (
-                      <Button 
-                        onClick={handleClearFilter}
-                        variant="outline"
-                      >
+                      <Button variant="outline" onClick={handleClearFilter}>
                         Clear Filter
                       </Button>
                     )}
@@ -151,7 +140,7 @@ const Index = () => {
                 </div>
                 <CodeOutput 
                   value={outputCode} 
-                  title={isFiltered ? `Filtered Output (${filterPhrase})` : `Output`}
+                  title={isFiltered ? `Output (Filtered: "${filterPhrase}")` : `Output`}
                 />
               </div>
             </div>
