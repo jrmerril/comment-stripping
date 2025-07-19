@@ -4,9 +4,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import CodeInput from "@/components/CodeInput";
 import CodeOutput from "@/components/CodeOutput";
 import LanguageSelector from "@/components/LanguageSelector";
-import { removeCommentLines, supportedLanguages } from "@/utils/codeUtils";
+import { removeCommentLines, supportedLanguages, filterCodeByPhrase } from "@/utils/codeUtils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const Index = () => {
@@ -18,14 +20,31 @@ const Index = () => {
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>(
     supportedLanguages.map(lang => lang.id) // All languages selected by default
   );
+  const [filterPhrase, setFilterPhrase] = useState<string>("");
+  const [isFiltered, setIsFiltered] = useState<boolean>(false);
 
   // Update output whenever input, languages, or removeSpaces setting changes
   useEffect(() => {
-    setOutputCode(removeCommentLines(inputCode, selectedLanguages, removeSpaces, removePlusMinus, removeInlineComments));
-  }, [inputCode, selectedLanguages, removeSpaces, removePlusMinus, removeInlineComments]);
+    let processedCode = removeCommentLines(inputCode, selectedLanguages, removeSpaces, removePlusMinus, removeInlineComments);
+    
+    if (isFiltered && filterPhrase) {
+      processedCode = filterCodeByPhrase(processedCode, filterPhrase);
+    }
+    
+    setOutputCode(processedCode);
+  }, [inputCode, selectedLanguages, removeSpaces, removePlusMinus, removeInlineComments, isFiltered, filterPhrase]);
 
   const handleClear = () => {
     setInputCode("");
+  };
+
+  const handleFilter = () => {
+    setIsFiltered(true);
+  };
+
+  const handleClearFilter = () => {
+    setIsFiltered(false);
+    setFilterPhrase("");
   };
 
   return (
@@ -98,9 +117,41 @@ const Index = () => {
                 />
               </div>
               <div className="h-full">
+                <div className="mb-4">
+                  <div className="flex gap-2 items-end">
+                    <div className="flex-1">
+                      <Label htmlFor="filterPhrase" className="text-sm font-medium">
+                        Filter functions containing phrase
+                      </Label>
+                      <Input
+                        id="filterPhrase"
+                        type="text"
+                        placeholder="e.g., fetchcategorylistings"
+                        value={filterPhrase}
+                        onChange={(e) => setFilterPhrase(e.target.value)}
+                        className="mt-1"
+                      />
+                    </div>
+                    <Button 
+                      onClick={handleFilter}
+                      disabled={!filterPhrase}
+                      variant="default"
+                    >
+                      Filter
+                    </Button>
+                    {isFiltered && (
+                      <Button 
+                        onClick={handleClearFilter}
+                        variant="outline"
+                      >
+                        Clear Filter
+                      </Button>
+                    )}
+                  </div>
+                </div>
                 <CodeOutput 
                   value={outputCode} 
-                  title={`Output`}
+                  title={isFiltered ? `Filtered Output (${filterPhrase})` : `Output`}
                 />
               </div>
             </div>

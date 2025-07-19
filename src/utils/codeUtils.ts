@@ -163,6 +163,51 @@ export const removeCommentLines = (
 };
 
 /**
+ * Filters code to only show functions that contain the specified phrase
+ * @param code The source code
+ * @param phrase The phrase to search for (case insensitive)
+ * @returns Code with only matching functions
+ */
+export const filterCodeByPhrase = (code: string, phrase: string): string => {
+  if (!code || !phrase) return code;
+  
+  const lines = code.split('\n');
+  const filteredFunctions: string[] = [];
+  let currentFunction: string[] = [];
+  let braceCount = 0;
+  let inFunction = false;
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    
+    // Check if line contains function declaration patterns
+    const isFunctionStart = /^\s*(function\s+\w+|const\s+\w+\s*=|let\s+\w+\s*=|var\s+\w+\s*=|\w+\s*:|class\s+\w+|async\s+function|\w+\s*\(.*\)\s*{|\w+\s*=\s*\(.*\)\s*=>|export\s+(default\s+)?function|\w+\s*=\s*async|\w+\s*=\s*function)/.test(line);
+    
+    if (isFunctionStart && !inFunction) {
+      inFunction = true;
+      currentFunction = [line];
+      braceCount = (line.match(/{/g) || []).length - (line.match(/}/g) || []).length;
+    } else if (inFunction) {
+      currentFunction.push(line);
+      braceCount += (line.match(/{/g) || []).length - (line.match(/}/g) || []).length;
+      
+      if (braceCount <= 0) {
+        // Function complete, check if it contains the phrase
+        const functionText = currentFunction.join('\n');
+        if (functionText.toLowerCase().includes(phrase.toLowerCase())) {
+          filteredFunctions.push(functionText);
+        }
+        inFunction = false;
+        currentFunction = [];
+        braceCount = 0;
+      }
+    }
+  }
+  
+  return filteredFunctions.join('\n\n');
+};
+
+/**
  * Helper function to escape special characters in regex patterns
  */
 function escapeRegExp(string: string): string {
