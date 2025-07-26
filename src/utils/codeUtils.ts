@@ -101,13 +101,59 @@ export const removeCommentLines = (
 
   // Remove inline comments if requested
   if (removeInlineComments) {
-    const singleLineCommentRegex = activeLanguages
-      .flatMap(lang => lang.singleLineComments)
+    // Handle // comments specially to avoid URLs
+    const lines = result.split('\n');
+    const processedLines = lines.map(line => {
+      const commentIndex = line.indexOf('//');
+      if (commentIndex === -1) return line; // No // found
+      
+      const beforeComment = line.substring(0, commentIndex);
+      const trimmedBeforeComment = beforeComment.trim();
+      
+      // If // is at the start of the line, remove the entire line
+      if (trimmedBeforeComment === '') {
+        return '';
+      }
+      
+      // Check if the // is inside a string literal
+      const singleQuotes = (beforeComment.match(/'/g) || []).length;
+      const doubleQuotes = (beforeComment.match(/"/g) || []).length;
+      const backticks = (beforeComment.match(/`/g) || []).length;
+      
+      // If we have an odd number of quotes, we're inside a string
+      if (singleQuotes % 2 === 1 || doubleQuotes % 2 === 1 || backticks % 2 === 1) {
+        return line; // It's inside a string, preserve the entire line
+      }
+      
+      // Check for protocol-relative URLs (starting with //)
+      if (beforeComment.trim().startsWith('//')) {
+        return line; // It's part of a URL, preserve the entire line
+      }
+      
+      // Check if the // is part of a protocol-relative URL (the line starts with //)
+      if (line.trim().startsWith('//')) {
+        return ''; // It's a comment line, remove it
+      }
+      
+      // Check if there's text before // that doesn't end with whitespace
+      if (!beforeComment.endsWith(' ') && !beforeComment.endsWith('\t')) {
+        return line; // Don't treat as comment if there's text before //
+      }
+      
+      // It's a comment, remove the comment part
+      return beforeComment.trim();
+    });
+    
+    result = processedLines.join('\n');
+    
+    // Handle other comment styles
+    const otherCommentRegex = activeLanguages
+      .flatMap(lang => lang.singleLineComments.filter(comment => comment !== '//'))
       .map(comment => `\s*${escapeRegExp(comment)}.*$`)
       .join('|');
     
-    if (singleLineCommentRegex) {
-      result = result.replace(new RegExp(`(${singleLineCommentRegex})`, 'gm'), '');
+    if (otherCommentRegex) {
+      result = result.replace(new RegExp(`(${otherCommentRegex})`, 'gm'), '');
     }
   }
   
@@ -135,33 +181,20 @@ export const removeCommentLines = (
     }
   }
   
-  // Then handle single-line comments line by line
+  // Handle single-line comments (lines that start with comment markers)
   const lines = result.split('\n');
   const filteredLines = lines.filter(line => {
-    const trimmedLine = line.trimStart();
-    // Check if line starts with any of the single line comment markers
+    // Check if line starts with any of the single line comment markers (excluding // which is handled above)
     return !activeLanguages.some(lang => 
       lang.singleLineComments.some(commentStyle => {
-        // Check if the line starts with the comment style
-        if (trimmedLine.startsWith(commentStyle)) {
-          // For // comments, make sure it's not part of a URL or other token
-          if (commentStyle === '//') {
-            // Look for common patterns that shouldn't be treated as comments
-            // URLs like https://, http://, ftp://, etc.
-            const urlPattern = /^https?:\/\/|^ftp:\/\/|^sftp:\/\/|^file:\/\/|^mailto:/i;
-            if (urlPattern.test(trimmedLine)) {
-              return false; // Don't treat as comment
-            }
-            // Check if it's part of a valid identifier or path
-            // This handles cases like "path/to/file" or "namespace::method"
-            const beforeComment = line.substring(0, line.indexOf('//')).trim();
-            if (beforeComment && !beforeComment.endsWith(' ') && !beforeComment.endsWith('\t')) {
-              return false; // Don't treat as comment if there's text before //
-            }
-          }
-          return true; // It's a comment
+        if (commentStyle === '//') {
+          // // comments are handled in the inline comment section above
+          return false;
+        } else {
+          // For other comment styles, check if line starts with the comment style
+          const trimmedLine = line.trimStart();
+          return trimmedLine.startsWith(commentStyle);
         }
-        return false; // Not a comment
       })
     );
   });
