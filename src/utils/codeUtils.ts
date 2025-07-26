@@ -182,6 +182,139 @@ export const removeCommentLines = (
 };
 
 /**
+ * Filters code to only include blocks that contain the specified phrase
+ * Preserves complete functions and variable declarations
+ */
+export const filterCodeByPhrase = (code: string, phrase: string): string => {
+  if (!code || !phrase) return code;
+  
+  const lines = code.split('\n');
+  const filteredLines: string[] = [];
+  const phraseRegex = new RegExp(phrase, 'gi');
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    
+    // Check if current line contains the phrase
+    if (phraseRegex.test(line)) {
+      // Extract the complete block (function, class, variable declaration, etc.)
+      const block = extractCompleteBlock(lines, i);
+      
+      // Add the block to filtered lines if not already added
+      const blockStart = block.startLine;
+      const blockEnd = block.endLine;
+      
+      // Check if this block is already included
+      const alreadyIncluded = filteredLines.some((_, index) => {
+        const existingBlockInfo = (filteredLines as any).blockInfo;
+        return existingBlockInfo && 
+               existingBlockInfo.some((info: any) => 
+                 info.start <= blockStart && info.end >= blockEnd
+               );
+      });
+      
+      if (!alreadyIncluded) {
+        // Add block info to track what we've added
+        if (!(filteredLines as any).blockInfo) {
+          (filteredLines as any).blockInfo = [];
+        }
+        (filteredLines as any).blockInfo.push({ start: blockStart, end: blockEnd });
+        
+        // Add the lines from the block
+        for (let j = blockStart; j <= blockEnd; j++) {
+          if (j < lines.length && !filteredLines.includes(lines[j])) {
+            filteredLines.push(lines[j]);
+          }
+        }
+        
+        // Add a separator line for readability
+        filteredLines.push('');
+      }
+    }
+  }
+  
+  return filteredLines.join('\n').replace(/\n{3,}/g, '\n\n');
+};
+
+/**
+ * Extracts a complete code block (function, class, etc.) starting from a given line
+ */
+function extractCompleteBlock(lines: string[], startLineIndex: number): { startLine: number, endLine: number } {
+  const line = lines[startLineIndex];
+  const indentation = getIndentation(line);
+  
+  // Find the start of the block by looking backwards for function/class/variable declarations
+  let blockStart = startLineIndex;
+  for (let i = startLineIndex; i >= 0; i--) {
+    const currentLine = lines[i];
+    const currentIndentation = getIndentation(currentLine);
+    
+    // If we find a line with less or equal indentation that looks like a declaration, that's our start
+    if (currentIndentation <= indentation) {
+      const trimmed = currentLine.trim();
+      if (trimmed.match(/^(function|class|const|let|var|export|import|interface|type|enum|\w+\s*[=:]|\w+\s*\()/)) {
+        blockStart = i;
+        break;
+      }
+    }
+    
+    // Stop if we hit a line with significantly less indentation
+    if (currentIndentation < indentation && currentLine.trim() !== '') {
+      break;
+    }
+  }
+  
+  // Find the end of the block
+  let blockEnd = startLineIndex;
+  let braceCount = 0;
+  let inBlock = false;
+  
+  for (let i = blockStart; i < lines.length; i++) {
+    const currentLine = lines[i];
+    const trimmed = currentLine.trim();
+    
+    // Count braces to find block boundaries
+    braceCount += countBraces(currentLine);
+    
+    if (braceCount > 0) {
+      inBlock = true;
+    }
+    
+    blockEnd = i;
+    
+    // If we were in a block and braces are balanced, we're done
+    if (inBlock && braceCount === 0) {
+      break;
+    }
+    
+    // For single-line declarations without braces
+    if (!inBlock && i > blockStart && trimmed === '') {
+      blockEnd = i - 1;
+      break;
+    }
+  }
+  
+  return { startLine: blockStart, endLine: blockEnd };
+}
+
+/**
+ * Gets the indentation level of a line
+ */
+function getIndentation(line: string): number {
+  const match = line.match(/^(\s*)/);
+  return match ? match[1].length : 0;
+}
+
+/**
+ * Counts opening and closing braces in a line
+ */
+function countBraces(line: string): number {
+  const openBraces = (line.match(/[{([]/g) || []).length;
+  const closeBraces = (line.match(/[})]/g) || []).length;
+  return openBraces - closeBraces;
+}
+
+/**
  * Helper function to escape special characters in regex patterns
  */
 function escapeRegExp(string: string): string {
