@@ -141,9 +141,28 @@ export const removeCommentLines = (
     const trimmedLine = line.trimStart();
     // Check if line starts with any of the single line comment markers
     return !activeLanguages.some(lang => 
-      lang.singleLineComments.some(commentStyle => 
-        trimmedLine.startsWith(commentStyle)
-      )
+      lang.singleLineComments.some(commentStyle => {
+        // Check if the line starts with the comment style
+        if (trimmedLine.startsWith(commentStyle)) {
+          // For // comments, make sure it's not part of a URL or other token
+          if (commentStyle === '//') {
+            // Look for common patterns that shouldn't be treated as comments
+            // URLs like https://, http://, ftp://, etc.
+            const urlPattern = /^https?:\/\/|^ftp:\/\/|^sftp:\/\/|^file:\/\/|^mailto:/i;
+            if (urlPattern.test(trimmedLine)) {
+              return false; // Don't treat as comment
+            }
+            // Check if it's part of a valid identifier or path
+            // This handles cases like "path/to/file" or "namespace::method"
+            const beforeComment = line.substring(0, line.indexOf('//')).trim();
+            if (beforeComment && !beforeComment.endsWith(' ') && !beforeComment.endsWith('\t')) {
+              return false; // Don't treat as comment if there's text before //
+            }
+          }
+          return true; // It's a comment
+        }
+        return false; // Not a comment
+      })
     );
   });
   
@@ -168,3 +187,5 @@ export const removeCommentLines = (
 function escapeRegExp(string: string): string {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
+
+
