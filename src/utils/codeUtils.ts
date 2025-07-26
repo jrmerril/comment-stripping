@@ -130,6 +130,12 @@ export const removeCommentLines = (
         return line; // It's part of a URL, preserve the entire line
       }
       
+      // Check if the // is part of a URL (like https://, http://, ftp://, etc.)
+      const urlPattern = /(https?|ftp|file|ws|wss):\/\//i;
+      if (urlPattern.test(beforeComment)) {
+        return line; // It's part of a URL, preserve the entire line
+      }
+      
       // Check if the // is part of a protocol-relative URL (the line starts with //)
       if (line.trim().startsWith('//')) {
         return ''; // It's a comment line, remove it
