@@ -120,7 +120,7 @@ const Index = () => {
                 />
               </div>
               <div className="h-full">
-                <div className="mb-4">
+                {/* <div className="mb-4">
                   <div className="flex items-center space-x-2 mb-2">
                     <Input
                       placeholder="Enter phrase to filter (e.g., fetchcategorylistings)"
@@ -137,7 +137,7 @@ const Index = () => {
                       </Button>
                     )}
                   </div>
-                </div>
+                </div> */}
                 <CodeOutput 
                   value={outputCode} 
                   title={isFiltered ? `Output (Filtered: "${filterPhrase}")` : `Output`}
