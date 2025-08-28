@@ -214,7 +214,8 @@ export const removeCommentLines = (
       .replace(/\n{3,}/g, '\n\n')  // Replace 3+ consecutive new lines with 2
       .replace(/^[ \t]+/gm, match => {  // Convert tabs to 2 spaces and normalize indentation
         return ' '.repeat(match.replace(/\t/g, '  ').length);
-      });
+      })
+      .replace(/[ \t]{2,}/g, ' ');  // Replace multiple spaces/tabs with a single space
   }
   
   return result;
